@@ -399,6 +399,33 @@ dd {
 .message-area {
   display: grid;
   gap: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(17, 29, 36, 0.58);
+  box-shadow: var(--shadow);
+}
+
+.message-feed {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.message-feed h3 {
+  margin: 0;
+}
+
+.message-feed-scroll {
+  max-height: min(58vh, 540px);
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-color: var(--brand) #0f1a20;
+  scrollbar-width: thin;
 }
 
 .hidden {

@@ -397,6 +397,7 @@ const setupMessageListActions = () => {
 
 const setupMessageInfiniteScroll = () => {
   const sentinel = document.getElementById("message-scroll-sentinel");
+  const scrollRoot = document.getElementById("message-feed-scroll");
 
   const observer = new IntersectionObserver((entries) => {
     const entry = entries[0];
@@ -409,7 +410,7 @@ const setupMessageInfiniteScroll = () => {
     state.messageLimit += 10;
     setupFirebaseMessages();
   }, {
-    root: null,
+    root: scrollRoot,
     rootMargin: "160px 0px",
     threshold: 0
   });

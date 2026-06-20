@@ -137,11 +137,13 @@
               <p id="form-status" role="status">請先登入帳號才可以留言。</p>
             </form>
 
-            <div>
+            <section class="message-feed" aria-label="最新留言區">
               <h3>最新留言</h3>
-              <div id="message-list" class="message-list" aria-live="polite"></div>
-              <div id="message-scroll-sentinel" class="scroll-sentinel" aria-hidden="true"></div>
-            </div>
+              <div id="message-feed-scroll" class="message-feed-scroll">
+                <div id="message-list" class="message-list" aria-live="polite"></div>
+                <div id="message-scroll-sentinel" class="scroll-sentinel" aria-hidden="true"></div>
+              </div>
+            </section>
           </section>
         </div>
       </section>
