@@ -452,10 +452,19 @@ textarea {
 }
 
 .message-item {
+  display: grid;
+  gap: 8px;
   padding: 16px;
 }
 
-.message-item strong {
+.message-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.message-topline strong {
   display: block;
 }
 
@@ -466,6 +475,44 @@ textarea {
 
 .message-item p {
   margin: 8px 0 0;
+}
+
+.edited-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.message-action,
+.load-more-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-color: var(--line);
+  color: var(--ink);
+  background: #0f1a20;
+  font-size: 0.9rem;
+}
+
+.message-action.active {
+  color: #071015;
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.message-action.danger {
+  color: #ffd7d7;
+}
+
+.load-more-button {
+  width: 100%;
+  margin-top: 14px;
 }
 
 footer {

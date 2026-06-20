@@ -10,14 +10,17 @@ import {
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getFirestore,
+  increment,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
-  setDoc
+  setDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -92,7 +95,9 @@ const siteData = {
 const state = {
   site: siteData,
   authMode: "login",
-  currentUser: null
+  currentUser: null,
+  messageLimit: 10,
+  unsubscribeMessages: null
 };
 
 const formatDate = (value) => {
@@ -105,6 +110,24 @@ const formatDate = (value) => {
     hour: "2-digit",
     minute: "2-digit"
   }).format(date);
+};
+
+const formatRelativeTime = (value) => {
+  const date = value?.toDate ? value.toDate() : new Date(value || Date.now());
+  const diffSeconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+
+  if (diffSeconds < 60) return "剛剛";
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes} 分鐘前`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} 小時前`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} 天前`;
+
+  return formatDate(date);
 };
 
 const text = (id, value) => {
@@ -174,23 +197,48 @@ const renderTopics = (topics) => {
 
 const renderMessages = (messages) => {
   const list = document.getElementById("message-list");
+  const currentUid = state.currentUser?.uid || "";
 
   if (!messages.length) {
     list.innerHTML = '<p class="empty">目前還沒有留言。</p>';
+    document.getElementById("load-more-messages").classList.add("hidden");
     return;
   }
 
   list.innerHTML = messages
-    .map(
-      (message) => `
-        <article class="message-item">
-          <strong>${escapeHtml(message.name)}</strong>
-          <time>${formatDate(message.createdAt)}</time>
+    .map((message) => {
+      const isOwner = currentUid && message.uid === currentUid;
+      const likedBy = message.likedBy || {};
+      const liked = Boolean(currentUid && likedBy[currentUid]);
+      const likes = Number(message.likes || 0);
+
+      return `
+        <article class="message-item" data-message-id="${escapeHtml(message.id)}">
+          <div class="message-topline">
+            <strong>${escapeHtml(message.name)}</strong>
+            <time title="${escapeHtml(formatDate(message.createdAt))}">
+              ${escapeHtml(formatRelativeTime(message.createdAt))}
+            </time>
+          </div>
           <p>${escapeHtml(message.content)}</p>
+          ${message.edited ? '<span class="edited-label">已編輯</span>' : ""}
+          <div class="message-actions">
+            <button class="message-action like-action ${liked ? "active" : ""}" type="button" data-action="like">
+              讚 ${likes}
+            </button>
+            ${isOwner ? `
+              <button class="message-action" type="button" data-action="edit">編輯</button>
+              <button class="message-action danger" type="button" data-action="delete">刪除</button>
+            ` : ""}
+          </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
+
+  document
+    .getElementById("load-more-messages")
+    .classList.toggle("hidden", messages.length < state.messageLimit);
 };
 
 const renderAuth = () => {
@@ -214,6 +262,8 @@ const renderAuth = () => {
     text("current-user", "");
     formStatus.textContent = "請先登入帳號才可以留言。";
   }
+
+  renderMessages(state.site.messages);
 };
 
 const setAuthMode = (mode) => {
@@ -245,13 +295,17 @@ const renderSite = (site) => {
 };
 
 const setupFirebaseMessages = () => {
+  if (state.unsubscribeMessages) {
+    state.unsubscribeMessages();
+  }
+
   const messageQuery = query(
     collection(db, "messages"),
     orderBy("createdAt", "desc"),
-    limit(8)
+    limit(state.messageLimit)
   );
 
-  onSnapshot(messageQuery, (snapshot) => {
+  state.unsubscribeMessages = onSnapshot(messageQuery, (snapshot) => {
     state.site.messages = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data()
@@ -259,6 +313,86 @@ const setupFirebaseMessages = () => {
     renderMessages(state.site.messages);
   }, (error) => {
     document.getElementById("form-status").textContent = `Firebase 留言讀取失敗：${error.message}`;
+  });
+};
+
+const getMessageById = (id) => {
+  return state.site.messages.find((message) => message.id === id);
+};
+
+const setupMessageListActions = () => {
+  const list = document.getElementById("message-list");
+  const loadMore = document.getElementById("load-more-messages");
+  const status = document.getElementById("form-status");
+
+  list.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+
+    const item = button.closest("[data-message-id]");
+    const messageId = item?.dataset.messageId;
+    const message = getMessageById(messageId);
+    const action = button.dataset.action;
+
+    if (!message || !state.currentUser) {
+      status.textContent = "請先登入帳號。";
+      return;
+    }
+
+    const messageRef = doc(db, "messages", messageId);
+
+    try {
+      if (action === "like") {
+        if (message.likedBy?.[state.currentUser.uid]) {
+          status.textContent = "你已經按過讚。";
+          return;
+        }
+
+        await updateDoc(messageRef, {
+          likes: increment(1),
+          [`likedBy.${state.currentUser.uid}`]: true
+        });
+        status.textContent = "已按讚。";
+      }
+
+      if (action === "edit") {
+        if (message.uid !== state.currentUser.uid) {
+          throw new Error("只能編輯自己的留言。");
+        }
+
+        const nextContent = prompt("修改留言內容：", message.content);
+        if (nextContent === null) return;
+
+        const content = nextContent.trim();
+        if (!content) throw new Error("留言內容不能空白。");
+        if (content.length > 180) throw new Error("留言太長，請縮短到 180 字以內。");
+
+        await updateDoc(messageRef, {
+          content,
+          edited: true,
+          updatedAt: serverTimestamp()
+        });
+        status.textContent = "留言已更新。";
+      }
+
+      if (action === "delete") {
+        if (message.uid !== state.currentUser.uid) {
+          throw new Error("只能刪除自己的留言。");
+        }
+
+        if (!confirm("確定要刪除這則留言嗎？")) return;
+
+        await deleteDoc(messageRef);
+        status.textContent = "留言已刪除。";
+      }
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  loadMore.addEventListener("click", () => {
+    state.messageLimit += 10;
+    setupFirebaseMessages();
   });
 };
 
@@ -333,11 +467,13 @@ const setupMessageForm = () => {
         uid: state.currentUser.uid,
         email: state.currentUser.email,
         name: getDisplayName(state.currentUser),
+        likes: 0,
+        likedBy: {},
         createdAt: serverTimestamp()
       });
 
       form.reset();
-      status.textContent = "留言已存入 Firebase。";
+      status.textContent = "留言已上傳。";
     } catch (error) {
       status.textContent = error.message;
     }
@@ -347,6 +483,7 @@ const setupMessageForm = () => {
 document.addEventListener("DOMContentLoaded", () => {
   setupAuth();
   setupMessageForm();
+  setupMessageListActions();
   setupFirebaseMessages();
   renderSite(state.site);
 });
