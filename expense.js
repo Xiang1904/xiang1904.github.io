@@ -51,6 +51,9 @@ const CATEGORY_LABELS = {
   other: "其他"
 };
 
+const FIXED_COST_CATEGORIES = new Set(["salary"]);
+const WEEKDAY_LABELS = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+
 const state = {
   authMode: "login",
   currentUser: null,
@@ -75,6 +78,23 @@ const formatDate = (value) => {
     month: "2-digit",
     day: "2-digit"
   }).format(date);
+};
+
+const parseDate = (value) => {
+  const date = value?.toDate ? value.toDate() : new Date(value || Date.now());
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+};
+
+const getWeekStart = (date) => {
+  const start = new Date(date);
+  const weekday = start.getDay();
+  start.setDate(start.getDate() - weekday);
+  start.setHours(0, 0, 0, 0);
+  return start;
+};
+
+const getMonthKey = (date) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 };
 
 const escapeHtml = (value) => {
@@ -147,6 +167,8 @@ const renderAuth = () => {
     document.getElementById(id).disabled = !isLoggedIn;
   });
 
+  document.querySelector(".auth-panel").classList.toggle("hidden", false);
+
   document.getElementById("current-user").textContent = isLoggedIn ? state.currentUser.email : "";
   setStatus("expense-status", isLoggedIn ? "可以開始新增記帳資料。" : "請先登入帳號才能新增記帳資料。", !isLoggedIn);
 };
@@ -211,6 +233,54 @@ const updateSummary = () => {
   document.getElementById("summary-balance").textContent = formatCurrency(income - expense);
 };
 
+const updateFinanceOverview = () => {
+  const now = new Date();
+  const thisWeekStart = getWeekStart(now);
+  const thisMonthKey = getMonthKey(now);
+
+  const weeklyEntries = state.expenses.filter((entry) => {
+    const date = parseDate(entry.date);
+    return entry.type === "expense" && date >= thisWeekStart;
+  });
+
+  const weeklyTotal = weeklyEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  document.getElementById("weekly-spending").textContent = formatCurrency(weeklyTotal);
+
+  const weeklyByDay = new Map();
+  WEEKDAY_LABELS.forEach((label, index) => weeklyByDay.set(index, { label, total: 0 }));
+  weeklyEntries.forEach((entry) => {
+    const date = parseDate(entry.date);
+    const day = date.getDay();
+    weeklyByDay.get(day).total += Number(entry.amount || 0);
+  });
+
+  document.getElementById("weekly-breakdown").innerHTML = Array.from(weeklyByDay.entries())
+    .map(([, value]) => `<div class="finance-breakdown-item"><strong>${value.label}</strong><em>${formatCurrency(value.total)}</em></div>`)
+    .join("");
+
+  const monthlyFixedEntries = state.expenses.filter((entry) => {
+    const date = parseDate(entry.date);
+    return entry.type === "expense" && getMonthKey(date) === thisMonthKey && FIXED_COST_CATEGORIES.has(entry.category);
+  });
+
+  const monthlyFixedTotal = monthlyFixedEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  document.getElementById("monthly-fixed-total").textContent = formatCurrency(monthlyFixedTotal);
+
+  const fixedSummary = new Map();
+  monthlyFixedEntries.forEach((entry) => {
+    const label = CATEGORY_LABELS[entry.category] || entry.category;
+    fixedSummary.set(label, (fixedSummary.get(label) || 0) + Number(entry.amount || 0));
+  });
+
+  const fixedMarkup = fixedSummary.size
+    ? Array.from(fixedSummary.entries())
+        .map(([label, total]) => `<div class="finance-breakdown-item"><strong>${escapeHtml(label)}</strong><em>${formatCurrency(total)}</em></div>`)
+        .join("")
+    : '<div class="finance-breakdown-item"><strong>目前沒有固定支出</strong><em>可再新增</em></div>';
+
+  document.getElementById("monthly-fixed-breakdown").innerHTML = fixedMarkup;
+};
+
 const subscribeExpenses = (uid) => {
   if (state.unsubscribeExpenses) {
     state.unsubscribeExpenses();
@@ -226,6 +296,7 @@ const subscribeExpenses = (uid) => {
     }));
     renderExpenses();
     updateSummary();
+    updateFinanceOverview();
   });
 };
 
@@ -338,6 +409,7 @@ const init = () => {
   setupEventListeners();
   renderAuth();
   updateSummary();
+  updateFinanceOverview();
 
   onAuthStateChanged(auth, (user) => {
     state.currentUser = user;
@@ -353,6 +425,7 @@ const init = () => {
       state.expenses = [];
       renderExpenses();
       updateSummary();
+      updateFinanceOverview();
     }
   });
 };

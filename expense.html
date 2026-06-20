@@ -85,6 +85,11 @@
                 <input type="text" id="expense-note" placeholder="例如：午餐、薪水" maxlength="50" />
               </div>
 
+              <label class="checkbox-row">
+                <input type="checkbox" id="expense-fixed" />
+                <span>固定支出</span>
+              </label>
+
               <button type="submit" class="submit-btn">新增記錄</button>
               <p id="expense-status" role="status">請先登入帳號才能新增記帳資料。</p>
             </form>
@@ -104,6 +109,37 @@
             <div class="summary-card balance">
               <span>結餘</span>
               <strong id="summary-balance">$0</strong>
+            </div>
+          </section>
+
+          <section class="insight-panel" aria-label="理財概覽">
+            <div class="insight-card accent">
+              <span>本週花費</span>
+              <strong id="weekly-total">$0</strong>
+              <p>最近 7 天的支出總額</p>
+            </div>
+            <div class="insight-card">
+              <span>每月固定支出</span>
+              <strong id="fixed-total">$0</strong>
+              <p>有標記為固定支出的項目</p>
+            </div>
+          </section>
+
+          <section class="weekly-chart-panel" aria-label="每週花費圖表">
+            <div class="section-title-row">
+              <h2>每週花費</h2>
+              <span>最近 7 天</span>
+            </div>
+            <div id="weekly-chart" class="weekly-chart"></div>
+          </section>
+
+          <section class="fixed-expense-panel" aria-label="每月固定支出">
+            <div class="section-title-row">
+              <h2>每月固定支出</h2>
+              <span>固定支出清單</span>
+            </div>
+            <div id="fixed-expense-list" class="fixed-expense-list">
+              <p class="empty-message">目前還沒有固定支出。</p>
             </div>
           </section>
 

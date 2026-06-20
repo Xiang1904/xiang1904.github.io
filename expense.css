@@ -42,6 +42,10 @@ select {
   font: inherit;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .expense-shell {
   min-height: 100vh;
 }
@@ -233,6 +237,21 @@ h2 {
   pointer-events: none;
 }
 
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 700;
+  text-transform: none;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand);
+}
+
 #auth-status,
 #expense-status {
   min-height: 22px;
@@ -269,6 +288,132 @@ h2 {
 .expense-main-panel {
   display: grid;
   gap: 28px;
+}
+
+.insight-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.insight-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(15, 26, 32, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.insight-card.accent {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.16), rgba(15, 26, 32, 0.72));
+}
+
+.insight-card span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.insight-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.insight-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.weekly-chart-panel,
+.fixed-expense-panel {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(15, 26, 32, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-title-row span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.weekly-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.chart-day {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.chart-bar-wrap {
+  width: 100%;
+  min-height: 150px;
+  display: flex;
+  align-items: end;
+}
+
+.chart-bar {
+  width: 100%;
+  min-height: 18px;
+  border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(180deg, var(--brand), rgba(45, 212, 191, 0.28));
+}
+
+.chart-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.chart-amount {
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.fixed-expense-list {
+  display: grid;
+  gap: 12px;
+}
+
+.fixed-expense-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(8, 14, 18, 0.5);
+  border: 1px solid rgba(38, 57, 67, 0.35);
+}
+
+.fixed-expense-item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.fixed-expense-item span {
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .expense-summary {
@@ -398,6 +543,11 @@ h2 {
   color: #ff8787;
 }
 
+.badge.fixed {
+  background: rgba(230, 195, 92, 0.15);
+  color: var(--gold);
+}
+
 .expense-item-note {
   color: var(--ink);
   font-weight: 700;
@@ -457,6 +607,10 @@ h2 {
   .side-panel {
     position: static;
   }
+
+  .weekly-chart {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -485,5 +639,14 @@ h2 {
 
   .expense-item-amount {
     justify-content: flex-start;
+  }
+
+  .weekly-chart {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-title-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
