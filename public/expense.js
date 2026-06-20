@@ -62,6 +62,10 @@ const state = {
   unsubscribeExpenses: null
 };
 
+const getActiveUser = () => {
+  return auth.currentUser || state.currentUser;
+};
+
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("zh-TW", {
     style: "currency",
@@ -153,7 +157,8 @@ const setAuthMode = (mode) => {
 };
 
 const renderAuth = () => {
-  const isLoggedIn = Boolean(state.currentUser);
+  const activeUser = getActiveUser();
+  const isLoggedIn = Boolean(activeUser);
   const authForm = document.getElementById("auth-form");
   const userPanel = document.getElementById("user-panel");
   const expenseForm = document.getElementById("expense-form");
@@ -169,13 +174,13 @@ const renderAuth = () => {
 
   document.querySelector(".auth-panel").classList.toggle("hidden", false);
 
-  document.getElementById("current-user").textContent = isLoggedIn ? state.currentUser.email : "";
+  document.getElementById("current-user").textContent = isLoggedIn ? activeUser.email : "";
   setStatus("expense-status", isLoggedIn ? "可以開始新增記帳資料。" : "請先登入帳號才能新增記帳資料。", !isLoggedIn);
 };
 
 const renderExpenses = () => {
   const list = document.getElementById("expense-list");
-  const currentUid = state.currentUser?.uid || "";
+  const currentUid = getActiveUser()?.uid || "";
 
   if (!currentUid) {
     list.innerHTML = '<p class="empty-message">登入後就可以開始新增記錄。</p>';
@@ -316,9 +321,13 @@ const handleAuthSubmit = async (event) => {
 
     if (state.authMode === "register") {
       await createUserWithEmailAndPassword(auth, email, password);
+      state.currentUser = auth.currentUser;
+      renderAuth();
       setStatus("auth-status", "註冊成功，已自動登入。", false);
     } else {
       await signInWithEmailAndPassword(auth, email, password);
+      state.currentUser = auth.currentUser;
+      renderAuth();
       setStatus("auth-status", "登入成功。", false);
     }
   } catch (error) {
@@ -329,7 +338,9 @@ const handleAuthSubmit = async (event) => {
 const handleExpenseSubmit = async (event) => {
   event.preventDefault();
 
-  if (!state.currentUser) {
+  const activeUser = getActiveUser();
+
+  if (!activeUser) {
     setStatus("expense-status", "請先登入帳號才能新增記帳資料。", true);
     return;
   }
@@ -347,8 +358,8 @@ const handleExpenseSubmit = async (event) => {
 
   try {
     await addDoc(collection(db, "expenses"), {
-      uid: state.currentUser.uid,
-      account: state.currentUser.email,
+      uid: activeUser.uid,
+      account: activeUser.email,
       type,
       category,
       amount,
