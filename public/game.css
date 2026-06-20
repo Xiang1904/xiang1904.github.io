@@ -1,0 +1,166 @@
+:root {
+  --ink: #edf5f7;
+  --muted: #9db1b9;
+  --paper: #0b1217;
+  --brand: #2dd4bf;
+  --sky: #183747;
+  --pipe: #2dd4bf;
+  --white: #16242c;
+  --accent: #9db1b9;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(45, 212, 191, 0.14), transparent 28%),
+    linear-gradient(135deg, #0b1217 0%, #111d24 55%, #071015 100%);
+}
+
+.game-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.52fr) minmax(560px, 1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  padding: clamp(22px, 6vw, 72px);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 7vw, 5.8rem);
+  line-height: 0.96;
+}
+
+.game-info p:not(.eyebrow) {
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 1.14rem;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 140px));
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.score-row div {
+  padding: 16px;
+  border: 1px solid #263943;
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.score-row span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.score-row strong {
+  font-size: 2rem;
+}
+
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+button,
+.back-link {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button {
+  color: #071015;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.back-link {
+  color: var(--ink);
+  background: transparent;
+}
+
+.canvas-panel {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.canvas-wrap {
+  position: relative;
+  width: min(100%, 720px);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 560 / 620;
+  border: 4px solid #263943;
+  border-radius: 8px;
+  background: var(--sky);
+  box-shadow: var(--shadow);
+  touch-action: manipulation;
+}
+
+.retry-button {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  min-width: 150px;
+  min-height: 50px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+.hidden {
+  display: none !important;
+}
+
+#game-status {
+  min-height: 24px;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .game-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .score-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

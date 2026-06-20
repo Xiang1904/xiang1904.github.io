@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>小鳥飛水管 | 莊凱翔期末專題</title>
+    <link rel="stylesheet" href="game.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="game-info">
+        <p class="eyebrow">Game Page</p>
+        <h1>小鳥飛水管</h1>
+        <p>點擊畫面或按空白鍵讓小鳥往上飛，穿過水管累積分數。</p>
+        <div class="score-row">
+          <div>
+            <span>Score</span>
+            <strong id="score">0</strong>
+          </div>
+          <div>
+            <span>Best</span>
+            <strong id="best-score">0</strong>
+          </div>
+        </div>
+        <div class="game-actions">
+          <button id="start-button" type="button">開始遊戲</button>
+          <a href="index.html" class="back-link">回首頁</a>
+        </div>
+      </section>
+
+      <section class="canvas-panel" aria-label="遊戲畫面">
+        <div class="canvas-wrap">
+          <canvas id="game-canvas" width="560" height="620"></canvas>
+          <button id="retry-button" class="retry-button hidden" type="button">重新挑戰</button>
+        </div>
+        <p id="game-status">按開始或點擊畫面進入遊戲。</p>
+      </section>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>

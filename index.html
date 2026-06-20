@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>莊凱翔 | JavaScript 期末專案</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top">Kai Portfolio</a>
+      <nav aria-label="主要導覽">
+        <a href="#about">自我介紹</a>
+        <a href="#course">課程內容</a>
+        <a href="#project">期末專題</a>
+        <a href="game.html" target="_blank" rel="noreferrer">遊戲</a>
+        <a href="#app">會員留言</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Final Project</p>
+          <h1 id="hero-title">React 筆記與遊戲專題</h1>
+          <p id="profile-title" class="subtitle"></p>
+          <div class="hero-actions">
+            <a class="primary-action" href="game.html" target="_blank" rel="noreferrer">開始玩遊戲</a>
+            <a class="secondary-action" href="#about">展開個人介紹</a>
+          </div>
+        </div>
+        <div class="hero-panel" aria-label="專案摘要">
+          <span>Frontend</span>
+          <strong>React Notes / JavaScript</strong>
+          <span>Backend</span>
+          <strong>Node.js API</strong>
+          <span>Final Project</span>
+          <strong>Canvas Game</strong>
+        </div>
+      </section>
+
+      <section id="about" class="section-band">
+        <div class="section-heading">
+          <p class="eyebrow">About Me</p>
+          <h2>點擊展開個人介紹</h2>
+        </div>
+        <details class="profile-disclosure">
+          <summary>
+            <span>點擊展開</span>
+            <strong>個人資料</strong>
+          </summary>
+          <div class="about-layout">
+            <p id="profile-intro"></p>
+            <dl>
+              <div>
+                <dt>姓名</dt>
+                <dd id="profile-name-detail"></dd>
+              </div>
+              <div>
+                <dt>學校</dt>
+                <dd id="profile-school"></dd>
+              </div>
+              <div>
+                <dt>信箱</dt>
+                <dd id="profile-email"></dd>
+              </div>
+            </dl>
+          </div>
+        </details>
+      </section>
+
+      <section id="course" class="section-band light">
+        <div class="section-heading">
+          <p class="eyebrow">Course Notes</p>
+          <h2>本學期上課內容</h2>
+        </div>
+        <div id="course-list" class="topic-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="project" class="section-band">
+        <div class="section-heading">
+          <p class="eyebrow">Final Project</p>
+          <h2>期末專題</h2>
+        </div>
+        <article class="project-detail">
+          <div>
+            <h3 id="project-name"></h3>
+            <p id="project-goal"></p>
+          </div>
+          <ul>
+            <li><span>功能</span><strong id="project-features"></strong></li>
+            <li><span>技術</span><strong id="project-tech"></strong></li>
+            <li><span>狀態</span><strong id="project-status"></strong></li>
+          </ul>
+          <a class="project-link" href="game.html" target="_blank" rel="noreferrer">遊戲網頁</a>
+        </article>
+      </section>
+
+      <section id="app" class="section-band light">
+        <div class="section-heading">
+          <p class="eyebrow">Mini App</p>
+          <h2>會員留言板</h2>
+        </div>
+        <div class="app-layout">
+          <section class="auth-panel" aria-label="會員登入">
+            <div class="auth-tabs">
+              <button id="login-tab" class="tab-button active" type="button">登入</button>
+              <button id="register-tab" class="tab-button" type="button">註冊</button>
+            </div>
+
+            <form id="auth-form" class="message-form">
+              <label>
+                帳號
+                <input id="auth-username" name="username" type="text" autocomplete="username" maxlength="30" required />
+              </label>
+              <label>
+                密碼
+                <input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="40" required />
+              </label>
+              <button id="auth-submit" type="submit">登入</button>
+              <p id="auth-status" role="status"></p>
+            </form>
+
+            <div id="user-panel" class="user-panel hidden">
+              <span>目前登入</span>
+              <strong id="current-user"></strong>
+              <button id="logout-button" type="button">登出</button>
+            </div>
+          </section>
+
+          <section class="message-area" aria-label="留言功能">
+            <form id="message-form" class="message-form locked">
+              <label>
+                留言內容
+                <textarea id="message-content" name="content" rows="4" maxlength="180" required></textarea>
+              </label>
+              <button type="submit">送出留言</button>
+              <p id="form-status" role="status">請先登入帳號才可以留言。</p>
+            </form>
+
+            <div>
+              <h3>最新留言</h3>
+              <div id="message-list" class="message-list" aria-live="polite"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>莊凱翔 | 南台科技大學 | JavaScript 期末專案</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
