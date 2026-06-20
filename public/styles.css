@@ -490,8 +490,7 @@ textarea {
   margin-top: 4px;
 }
 
-.message-action,
-.load-more-button {
+.message-action {
   min-height: 34px;
   padding: 0 12px;
   border-color: var(--line);
@@ -510,9 +509,9 @@ textarea {
   color: #ffd7d7;
 }
 
-.load-more-button {
-  width: 100%;
-  margin-top: 14px;
+.scroll-sentinel {
+  min-height: 36px;
+  margin-top: 8px;
 }
 
 footer {

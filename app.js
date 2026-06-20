@@ -97,7 +97,9 @@ const state = {
   authMode: "login",
   currentUser: null,
   messageLimit: 10,
-  unsubscribeMessages: null
+  unsubscribeMessages: null,
+  isLoadingMoreMessages: false,
+  hasMoreMessages: true
 };
 
 const formatDate = (value) => {
@@ -201,7 +203,7 @@ const renderMessages = (messages) => {
 
   if (!messages.length) {
     list.innerHTML = '<p class="empty">目前還沒有留言。</p>';
-    document.getElementById("load-more-messages").classList.add("hidden");
+    document.getElementById("message-scroll-sentinel").classList.add("hidden");
     return;
   }
 
@@ -236,9 +238,11 @@ const renderMessages = (messages) => {
     })
     .join("");
 
+  state.hasMoreMessages = messages.length >= state.messageLimit;
+  state.isLoadingMoreMessages = false;
   document
-    .getElementById("load-more-messages")
-    .classList.toggle("hidden", messages.length < state.messageLimit);
+    .getElementById("message-scroll-sentinel")
+    .classList.toggle("hidden", !state.hasMoreMessages);
 };
 
 const renderAuth = () => {
@@ -322,7 +326,6 @@ const getMessageById = (id) => {
 
 const setupMessageListActions = () => {
   const list = document.getElementById("message-list");
-  const loadMore = document.getElementById("load-more-messages");
   const status = document.getElementById("form-status");
 
   list.addEventListener("click", async (event) => {
@@ -390,10 +393,28 @@ const setupMessageListActions = () => {
     }
   });
 
-  loadMore.addEventListener("click", () => {
+};
+
+const setupMessageInfiniteScroll = () => {
+  const sentinel = document.getElementById("message-scroll-sentinel");
+
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+
+    if (!entry.isIntersecting || state.isLoadingMoreMessages || !state.hasMoreMessages) {
+      return;
+    }
+
+    state.isLoadingMoreMessages = true;
     state.messageLimit += 10;
     setupFirebaseMessages();
+  }, {
+    root: null,
+    rootMargin: "160px 0px",
+    threshold: 0
   });
+
+  observer.observe(sentinel);
 };
 
 const setupAuth = () => {
@@ -473,7 +494,7 @@ const setupMessageForm = () => {
       });
 
       form.reset();
-      status.textContent = "留言已上傳。";
+      status.textContent = "留言已存入 Firebase。";
     } catch (error) {
       status.textContent = error.message;
     }
@@ -484,6 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAuth();
   setupMessageForm();
   setupMessageListActions();
+  setupMessageInfiniteScroll();
   setupFirebaseMessages();
   renderSite(state.site);
 });
