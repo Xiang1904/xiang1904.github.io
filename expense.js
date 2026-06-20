@@ -154,6 +154,15 @@ const readableFirebaseError = (error) => {
   return error?.message || "Firebase 操作失敗。";
 };
 
+const validatePassword = (password) => {
+  if (password.length < 8) return "密碼長度至少需要 8 個字。";
+  if (!/[A-Z]/.test(password)) return "密碼必須包含至少一個大寫英文字母。";
+  if (!/[a-z]/.test(password)) return "密碼必須包含至少一個小寫英文字母。";
+  if (!/[0-9]/.test(password)) return "密碼必須包含至少一個數字。";
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "密碼必須包含至少一個特殊符號 (如 !@#$%^*)。";
+  return null;
+};
+
 const setStatus = (elementId, message, isError = false) => {
   const element = document.getElementById(elementId);
   element.textContent = message || "";
@@ -166,6 +175,11 @@ const setAuthMode = (mode) => {
   document.getElementById("register-tab").classList.toggle("active", mode === "register");
   document.getElementById("auth-submit").textContent = mode === "login" ? "登入" : "註冊";
   setStatus("auth-status", mode === "login" ? "輸入帳號與密碼登入。" : "建立一組新的帳號與密碼。", false);
+
+  const requirements = document.getElementById("password-requirements");
+  if (requirements) {
+    requirements.classList.toggle("hidden", mode === "login");
+  }
 };
 
 const renderAuth = () => {
@@ -421,6 +435,11 @@ const handleAuthSubmit = async (event) => {
     const email = accountToFirebaseEmail(username);
 
     if (state.authMode === "register") {
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        setStatus("auth-status", passwordError, true);
+        return;
+      }
       await createUserWithEmailAndPassword(auth, email, password);
       state.currentUser = auth.currentUser;
       renderAuth();

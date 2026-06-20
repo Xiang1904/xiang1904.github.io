@@ -181,6 +181,15 @@ const readableFirebaseError = (error) => {
   return error?.message || "Firebase 操作失敗。";
 };
 
+const validatePassword = (password) => {
+  if (password.length < 8) return "密碼長度至少需要 8 個字。";
+  if (!/[A-Z]/.test(password)) return "密碼必須包含至少一個大寫英文字母。";
+  if (!/[a-z]/.test(password)) return "密碼必須包含至少一個小寫英文字母。";
+  if (!/[0-9]/.test(password)) return "密碼必須包含至少一個數字。";
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "密碼必須包含至少一個特殊符號 (如 !@#$%^*)。";
+  return null;
+};
+
 const renderTopics = (topics) => {
   const list = document.getElementById("course-list");
   list.innerHTML = topics
@@ -277,6 +286,11 @@ const setAuthMode = (mode) => {
   document.getElementById("auth-submit").textContent = mode === "login" ? "登入" : "註冊";
   document.getElementById("auth-status").textContent =
     mode === "login" ? "輸入帳號與密碼登入。" : "建立帳號後會自動登入。";
+
+  const requirements = document.getElementById("password-requirements");
+  if (requirements) {
+    requirements.classList.toggle("hidden", mode === "login");
+  }
 };
 
 const renderSite = (site) => {
@@ -438,6 +452,12 @@ const setupAuth = () => {
       if (state.authMode === "login") {
         credential = await signInWithEmailAndPassword(auth, email, password);
       } else {
+        const passwordError = validatePassword(password);
+        if (passwordError) {
+          authStatus.textContent = passwordError;
+          authStatus.style.color = "#ff8787";
+          return;
+        }
         credential = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", credential.user.uid), {
           username: getDisplayName(credential.user),

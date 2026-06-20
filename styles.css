@@ -590,3 +590,16 @@ footer p {
     grid-template-columns: 1fr;
   }
 }
+
+.password-requirements {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 4px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: block;
+}
+
+.password-requirements.hidden {
+  display: none !important;
+}
