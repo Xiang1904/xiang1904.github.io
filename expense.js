@@ -59,6 +59,7 @@ const state = {
   currentUser: null,
   expenses: [],
   filter: "all",
+  selectedMonth: "all",
   unsubscribeExpenses: null
 };
 
@@ -85,14 +86,25 @@ const formatDate = (value) => {
 };
 
 const parseDate = (value) => {
+  if (typeof value === "string" && value.includes("-") && !value.includes("T")) {
+    const date = new Date(value.replace(/-/g, "/"));
+    return Number.isNaN(date.getTime()) ? new Date() : date;
+  }
   const date = value?.toDate ? value.toDate() : new Date(value || Date.now());
   return Number.isNaN(date.getTime()) ? new Date() : date;
 };
 
+const getLocalDateString = () => {
+  const local = new Date();
+  const year = local.getFullYear();
+  const month = String(local.getMonth() + 1).padStart(2, "0");
+  const day = String(local.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const getWeekStart = (date) => {
   const start = new Date(date);
-  const weekday = start.getDay();
-  start.setDate(start.getDate() - weekday);
+  start.setDate(start.getDate() - 6);
   start.setHours(0, 0, 0, 0);
   return start;
 };
@@ -195,6 +207,13 @@ const renderExpenses = () => {
     entries = entries.filter((item) => item.type === "expense");
   }
 
+  if (state.selectedMonth !== "all") {
+    entries = entries.filter((item) => {
+      const date = parseDate(item.date);
+      return getMonthKey(date) === state.selectedMonth;
+    });
+  }
+
   if (!entries.length) {
     list.innerHTML = '<p class="empty-message">目前沒有相符的記帳紀錄。</p>';
     return;
@@ -230,8 +249,13 @@ const renderExpenses = () => {
 };
 
 const updateSummary = () => {
-  const income = state.expenses.filter((entry) => entry.type === "income").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-  const expense = state.expenses.filter((entry) => entry.type === "expense").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  let entries = state.expenses;
+  if (state.selectedMonth !== "all") {
+    entries = entries.filter((entry) => getMonthKey(parseDate(entry.date)) === state.selectedMonth);
+  }
+
+  const income = entries.filter((entry) => entry.type === "income").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  const expense = entries.filter((entry) => entry.type === "expense").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
 
   document.getElementById("summary-income").textContent = formatCurrency(income);
   document.getElementById("summary-expense").textContent = formatCurrency(expense);
@@ -249,27 +273,61 @@ const updateFinanceOverview = () => {
   });
 
   const weeklyTotal = weeklyEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-  document.getElementById("weekly-spending").textContent = formatCurrency(weeklyTotal);
+  const weeklyTotalEl = document.getElementById("weekly-total");
+  if (weeklyTotalEl) {
+    weeklyTotalEl.textContent = formatCurrency(weeklyTotal);
+  }
 
   const weeklyByDay = new Map();
-  WEEKDAY_LABELS.forEach((label, index) => weeklyByDay.set(index, { label, total: 0 }));
+  const orderedWeekdays = [
+    { day: 1, label: "週一" },
+    { day: 2, label: "週二" },
+    { day: 3, label: "週三" },
+    { day: 4, label: "週四" },
+    { day: 5, label: "週五" },
+    { day: 6, label: "週六" },
+    { day: 0, label: "週日" }
+  ];
+  orderedWeekdays.forEach(({ day, label }) => {
+    weeklyByDay.set(day, { label, total: 0 });
+  });
   weeklyEntries.forEach((entry) => {
     const date = parseDate(entry.date);
     const day = date.getDay();
-    weeklyByDay.get(day).total += Number(entry.amount || 0);
+    if (weeklyByDay.has(day)) {
+      weeklyByDay.get(day).total += Number(entry.amount || 0);
+    }
   });
 
-  document.getElementById("weekly-breakdown").innerHTML = Array.from(weeklyByDay.entries())
-    .map(([, value]) => `<div class="finance-breakdown-item"><strong>${value.label}</strong><em>${formatCurrency(value.total)}</em></div>`)
-    .join("");
+  const weeklyChartEl = document.getElementById("weekly-chart");
+  if (weeklyChartEl) {
+    const maxAmount = Math.max(...Array.from(weeklyByDay.values()).map(d => d.total), 1);
+    weeklyChartEl.innerHTML = Array.from(weeklyByDay.entries())
+      .map(([dayIndex, dayData]) => {
+        const percent = (dayData.total / maxAmount) * 100;
+        return `
+          <div class="chart-day">
+            <span class="chart-amount">${formatCurrency(dayData.total)}</span>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height: ${percent}%;"></div>
+            </div>
+            <span class="chart-label">${dayData.label}</span>
+          </div>
+        `;
+      })
+      .join("");
+  }
 
   const monthlyFixedEntries = state.expenses.filter((entry) => {
     const date = parseDate(entry.date);
-    return entry.type === "expense" && getMonthKey(date) === thisMonthKey && FIXED_COST_CATEGORIES.has(entry.category);
+    return entry.type === "expense" && getMonthKey(date) === thisMonthKey && entry.fixed === true;
   });
 
   const monthlyFixedTotal = monthlyFixedEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-  document.getElementById("monthly-fixed-total").textContent = formatCurrency(monthlyFixedTotal);
+  const fixedTotalEl = document.getElementById("fixed-total");
+  if (fixedTotalEl) {
+    fixedTotalEl.textContent = formatCurrency(monthlyFixedTotal);
+  }
 
   const fixedSummary = new Map();
   monthlyFixedEntries.forEach((entry) => {
@@ -277,13 +335,55 @@ const updateFinanceOverview = () => {
     fixedSummary.set(label, (fixedSummary.get(label) || 0) + Number(entry.amount || 0));
   });
 
-  const fixedMarkup = fixedSummary.size
-    ? Array.from(fixedSummary.entries())
-        .map(([label, total]) => `<div class="finance-breakdown-item"><strong>${escapeHtml(label)}</strong><em>${formatCurrency(total)}</em></div>`)
-        .join("")
-    : '<div class="finance-breakdown-item"><strong>目前沒有固定支出</strong><em>可再新增</em></div>';
+  const fixedExpenseListEl = document.getElementById("fixed-expense-list");
+  if (fixedExpenseListEl) {
+    const fixedMarkup = fixedSummary.size
+      ? Array.from(fixedSummary.entries())
+          .map(([label, total]) => `
+            <div class="fixed-expense-item">
+              <div>
+                <strong>${escapeHtml(label)}</strong>
+                <span>每月固定項目</span>
+              </div>
+              <strong>${formatCurrency(total)}</strong>
+            </div>
+          `)
+          .join("")
+      : '<p class="empty-message">目前還沒有固定支出。</p>';
+    fixedExpenseListEl.innerHTML = fixedMarkup;
+  }
+};
 
-  document.getElementById("monthly-fixed-breakdown").innerHTML = fixedMarkup;
+const updateMonthFilterOptions = () => {
+  const select = document.getElementById("month-filter");
+  if (!select) return;
+
+  const months = new Set();
+  state.expenses.forEach((entry) => {
+    if (entry.date) {
+      const date = parseDate(entry.date);
+      months.add(getMonthKey(date));
+    }
+  });
+
+  const sortedMonths = Array.from(months).sort((a, b) => b.localeCompare(a));
+  const prevSelection = state.selectedMonth;
+
+  let html = '<option value="all">所有月份</option>';
+  sortedMonths.forEach((monthKey) => {
+    const [year, month] = monthKey.split("-");
+    html += `<option value="${monthKey}">${year}年${month}月</option>`;
+  });
+
+  select.innerHTML = html;
+
+  if (sortedMonths.includes(prevSelection)) {
+    state.selectedMonth = prevSelection;
+    select.value = prevSelection;
+  } else {
+    state.selectedMonth = "all";
+    select.value = "all";
+  }
 };
 
 const subscribeExpenses = (uid) => {
@@ -299,6 +399,7 @@ const subscribeExpenses = (uid) => {
       id: expenseDoc.id,
       ...expenseDoc.data()
     }));
+    updateMonthFilterOptions();
     renderExpenses();
     updateSummary();
     updateFinanceOverview();
@@ -350,6 +451,7 @@ const handleExpenseSubmit = async (event) => {
   const category = document.getElementById("expense-category").value;
   const amount = Number(document.getElementById("expense-amount").value);
   const note = document.getElementById("expense-note").value.trim();
+  const fixed = document.getElementById("expense-fixed") ? document.getElementById("expense-fixed").checked : false;
 
   if (!date || !type || !category || !amount || amount <= 0) {
     setStatus("expense-status", "請填寫完整的記帳資料。", true);
@@ -365,11 +467,12 @@ const handleExpenseSubmit = async (event) => {
       amount,
       note,
       date,
+      fixed,
       createdAt: serverTimestamp()
     });
 
     document.getElementById("expense-form").reset();
-    document.getElementById("expense-date").value = new Date().toISOString().split("T")[0];
+    document.getElementById("expense-date").value = getLocalDateString();
     setStatus("expense-status", "記錄已新增。", false);
   } catch (error) {
     setStatus("expense-status", readableFirebaseError(error), true);
@@ -392,7 +495,7 @@ const handleListClick = async (event) => {
 };
 
 const setTodayDate = () => {
-  document.getElementById("expense-date").value = new Date().toISOString().split("T")[0];
+  document.getElementById("expense-date").value = getLocalDateString();
 };
 
 const setupEventListeners = () => {
@@ -410,6 +513,15 @@ const setupEventListeners = () => {
       renderExpenses();
     });
   });
+
+  const monthFilter = document.getElementById("month-filter");
+  if (monthFilter) {
+    monthFilter.addEventListener("change", (event) => {
+      state.selectedMonth = event.target.value;
+      renderExpenses();
+      updateSummary();
+    });
+  }
 
   document.getElementById("expense-list").addEventListener("click", handleListClick);
 };
@@ -434,6 +546,7 @@ const init = () => {
         state.unsubscribeExpenses = null;
       }
       state.expenses = [];
+      updateMonthFilterOptions();
       renderExpenses();
       updateSummary();
       updateFinanceOverview();
