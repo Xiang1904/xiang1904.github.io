@@ -96,8 +96,8 @@ const upsertProfile = db.prepare(`
 
 upsertProfile.run(
   "莊凱翔",
-  "React 學習筆記與期末遊戲專題",
-  "我是南台科技大學的學生。這個網站整理了我五週學習 React 的筆記，並加入會員留言板與小鳥飛水管遊戲專題，讓作品不只是一個靜態自我介紹頁。",
+  "React 學習筆記與期末記帳專題",
+  "我是南台科技大學的學生。這個網站整理了我五週學習 React 的筆記，並加入會員留言板與登入式記帳專題，讓作品不只是一個靜態自我介紹頁。",
   "南台科技大學",
   "4B2G0065@stust.edu.tw"
 );
@@ -127,11 +127,11 @@ db.prepare(`
     tech_stack = excluded.tech_stack,
     status = excluded.status
 `).run(
-  "小鳥飛水管遊戲",
-  "製作一個像 Flappy Bird 的網頁小遊戲，玩家點擊或按空白鍵讓角色飛起，閃避水管並累積分數。",
-  "Canvas 遊戲畫面、碰撞判定、分數計算、重新開始、會員留言板",
-  "HTML, CSS, JavaScript Canvas, Node.js HTTP Server, SQLite",
-  "首頁可查看專題說明，點擊按鈕會另外開啟遊戲頁面。"
+  "簡易記帳 App",
+  "製作一個登入後才能使用的簡易記帳頁面，讓使用者可以記錄收入支出、查看統計並管理自己的資料。",
+  "Firebase 登入註冊、收支新增刪除、分類篩選、統計摘要、Firestore 雲端儲存",
+  "HTML, CSS, JavaScript, Firebase Auth, Firestore",
+  "首頁可查看專題說明，點擊按鈕會另外開啟記帳頁面。"
 );
 
 const sendJson = (res, status, data, headers = {}) => {

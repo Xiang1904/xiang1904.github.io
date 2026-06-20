@@ -1,16 +1,16 @@
 # 莊凱翔 JavaScript 期末專案
 
-這是一個全端個人作品集、React 學習筆記與小鳥飛水管遊戲專題，符合期末作業需求：
+這是一個全端個人作品集、React 學習筆記與簡易記帳專題，符合期末作業需求：
 
 - 個人介紹
 - 五週 React 學習內容
-- 小鳥飛水管期末專題
+- 簡易記帳期末專題
 - 前端頁面
 - 後端 API
 - SQLite 資料庫
 - 會員註冊、登入、登出
 - 登入後才能留言
-- 另開遊戲頁面 `/game.html`
+- 另開記帳頁面 `/expense.html`
 - Firebase Authentication 登入註冊
 - Firestore 即時留言資料庫
 
@@ -34,9 +34,9 @@ data/site.db       SQLite 資料庫，第一次啟動會自動建立
 public/index.html  前端頁面
 public/styles.css  網站樣式
 public/app.js      Firebase Auth、Firestore 留言與前端互動
-public/game.html   小鳥飛水管遊戲頁
-public/game.css    遊戲頁樣式
-public/game.js     Canvas 遊戲邏輯
+public/expense.html  簡易記帳頁
+public/expense.css   記帳頁樣式
+public/expense.js    Firebase 記帳邏輯
 ```
 
 ## 主要功能

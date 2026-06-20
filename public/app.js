@@ -44,8 +44,8 @@ isSupported().then((supported) => {
 const siteData = {
   profile: {
     name: "莊凱翔",
-    title: "React 學習筆記與期末遊戲專題",
-    intro: "我是南台科技大學的學生。這個網站整理了我五週學習 React 的筆記，並加入會員留言板與小鳥飛水管遊戲專題，讓作品不只是一個靜態自我介紹頁。",
+    title: "React 學習筆記與期末記帳專題",
+    intro: "我是南台科技大學的學生。這個網站整理了我五週學習 React 的筆記，並加入會員留言板與登入式記帳專題，讓作品不只是一個靜態自我介紹頁。",
     school: "南台科技大學",
     email: "4B2G0065@stust.edu.tw"
   },
@@ -82,11 +82,11 @@ const siteData = {
     }
   ],
   project: {
-    name: "小鳥飛水管遊戲",
-    goal: "製作一個像 Flappy Bird 的網頁小遊戲，玩家點擊或按空白鍵讓角色飛起，閃避水管並累積分數。",
-    features: "Canvas 遊戲畫面、碰撞判定、分數計算、重新挑戰、Firebase 會員留言板",
-    tech_stack: "HTML, CSS, JavaScript Canvas, Firebase Auth, Firestore",
-    status: "可部署到 GitHub Pages，留言與會員資料會寫入 Firebase。"
+    name: "簡易記帳 App",
+    goal: "製作一個登入後才能使用的簡易記帳頁面，讓使用者可以記錄收入支出、查看統計並管理自己的資料。",
+    features: "Firebase 登入註冊、收支新增刪除、分類篩選、統計摘要、Firestore 雲端儲存",
+    tech_stack: "HTML, CSS, JavaScript, Firebase Auth, Firestore",
+    status: "可部署到 GitHub Pages，登入後的記帳資料會同步到 Firebase。"
   },
   messages: [],
   currentUser: null
