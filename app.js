@@ -477,6 +477,8 @@ const setupAuth = () => {
     await signOut(auth);
   });
 
+  signOut(auth).catch(() => {});
+
   onAuthStateChanged(auth, (user) => {
     state.currentUser = user;
     renderAuth();

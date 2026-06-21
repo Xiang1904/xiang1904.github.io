@@ -553,6 +553,8 @@ const init = () => {
   updateSummary();
   updateFinanceOverview();
 
+  signOut(auth).catch(() => {});
+
   onAuthStateChanged(auth, (user) => {
     state.currentUser = user;
     renderAuth();
