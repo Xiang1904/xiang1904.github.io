@@ -546,6 +546,7 @@ const setupEventListeners = () => {
 };
 
 const init = () => {
+  console.log("【記帳頁面】初始化，強制執行登出以重置狀態...");
   setTodayDate();
   setAuthMode("login");
   setupEventListeners();
@@ -553,7 +554,11 @@ const init = () => {
   updateSummary();
   updateFinanceOverview();
 
-  signOut(auth).catch(() => {});
+  signOut(auth).then(() => {
+    console.log("【記帳頁面】登出成功。");
+  }).catch((err) => {
+    console.error("【記帳頁面】登出失敗:", err);
+  });
 
   onAuthStateChanged(auth, (user) => {
     state.currentUser = user;

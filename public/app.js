@@ -45,7 +45,7 @@ const siteData = {
   profile: {
     name: "莊凱翔",
     title: "React 學習筆記與期末記帳專題",
-    intro: "我是南台科技大學的學生。這個網站整理了我五週學習 React 的筆記，並加入會員留言板與登入式記帳專題，讓作品不只是一個靜態自我介紹頁。",
+    intro: "目前就讀南台科技大學資訊工程系，平時沒事就是玩遊戲或耍費跟健身，當然也有學習一些AI agent的內容，然後我花了三週時間把這個網頁以及簡易記帳的網頁製作出來，所以在這部分也花了不少時間在上面。",
     school: "南台科技大學",
     email: "4B2G0065@stust.edu.tw"
   },
@@ -477,7 +477,12 @@ const setupAuth = () => {
     await signOut(auth);
   });
 
-  signOut(auth).catch(() => {});
+  console.log("【主頁面】初始化，強制執行登出以重置狀態...");
+  signOut(auth).then(() => {
+    console.log("【主頁面】登出成功。");
+  }).catch((err) => {
+    console.error("【主頁面】登出失敗:", err);
+  });
 
   onAuthStateChanged(auth, (user) => {
     state.currentUser = user;
