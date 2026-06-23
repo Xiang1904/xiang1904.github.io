@@ -279,11 +279,13 @@ const updateSummary = () => {
 const updateFinanceOverview = () => {
   const now = new Date();
   const thisWeekStart = getWeekStart(now);
+  const thisWeekEnd = new Date(now);
+  thisWeekEnd.setHours(23, 59, 59, 999);
   const thisMonthKey = getMonthKey(now);
 
   const weeklyEntries = state.expenses.filter((entry) => {
     const date = parseDate(entry.date);
-    return entry.type === "expense" && date >= thisWeekStart;
+    return entry.type === "expense" && date >= thisWeekStart && date <= thisWeekEnd;
   });
 
   const weeklyTotal = weeklyEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
@@ -332,9 +334,11 @@ const updateFinanceOverview = () => {
       .join("");
   }
 
+  const targetMonthKey = state.selectedMonth === "all" ? thisMonthKey : state.selectedMonth;
+
   const monthlyFixedEntries = state.expenses.filter((entry) => {
     const date = parseDate(entry.date);
-    return entry.type === "expense" && getMonthKey(date) === thisMonthKey && entry.fixed === true;
+    return entry.type === "expense" && getMonthKey(date) === targetMonthKey && entry.fixed === true;
   });
 
   const monthlyFixedTotal = monthlyFixedEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
@@ -539,6 +543,7 @@ const setupEventListeners = () => {
       state.selectedMonth = event.target.value;
       renderExpenses();
       updateSummary();
+      updateFinanceOverview();
     });
   }
 
