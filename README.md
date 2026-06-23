@@ -1,5 +1,7 @@
 # 莊凱翔 JavaScript 期末專案
 
+[開啟網站](https://xiang1904.github.io/)
+
 這是一個全端個人作品集、React 學習筆記與簡易記帳專題，符合期末作業需求：
 
 - 個人介紹
@@ -14,16 +16,6 @@
 - Firebase Authentication 登入註冊
 - Firestore 即時留言資料庫
 
-## 執行方式
-
-```bash
-npm start
-```
-
-本機開啟：
-
-```text
-http://localhost:3000
 ```
 
 ## 專案結構
@@ -46,9 +38,3 @@ public/expense.js    Firebase 記帳邏輯
 ## 部署建議
 
 目前前端已改用 Firebase Auth 與 Firestore，所以可以部署到 GitHub Pages。請先在 Firebase Console 啟用 Authentication 的 Email/Password 登入方式，並建立 Firestore Database。
-
-Render 設定：
-
-- Build Command: 可留空，或填 `npm install`
-- Start Command: `npm start`
-- Environment: Node.js 24+
