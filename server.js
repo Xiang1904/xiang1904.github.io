@@ -356,7 +356,10 @@ const sendStaticFile = (res, requestPath) => {
     : path.join(publicDir, "index.html");
 
   const extension = path.extname(finalPath).toLowerCase();
-  res.writeHead(200, { "Content-Type": mimeTypes[extension] || "application/octet-stream" });
+  res.writeHead(200, {
+    "Content-Type": mimeTypes[extension] || "application/octet-stream",
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+  });
   fs.createReadStream(finalPath).pipe(res);
 };
 

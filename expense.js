@@ -262,14 +262,56 @@ const renderExpenses = () => {
     .join("");
 };
 
+const getMonthlyFixedEntries = (targetMonthKey) => {
+  const [targetYear, targetMonth] = targetMonthKey.split("-").map(Number);
+  const targetMonthEnd = new Date(targetYear, targetMonth, 1, 0, 0, 0, 0);
+  targetMonthEnd.setMilliseconds(-1);
+
+  const allFixedBefore = state.expenses.filter((entry) => {
+    const date = parseDate(entry.date);
+    return entry.type === "expense" && entry.fixed === true && date <= targetMonthEnd;
+  });
+
+  const latestFixedMap = new Map();
+  allFixedBefore.forEach((entry) => {
+    const noteKey = (entry.note || "").trim().toLowerCase();
+    const groupKey = `${entry.category}_${noteKey}`;
+    const date = parseDate(entry.date);
+
+    if (!latestFixedMap.has(groupKey)) {
+      latestFixedMap.set(groupKey, entry);
+    } else {
+      const existing = latestFixedMap.get(groupKey);
+      if (date > parseDate(existing.date)) {
+        latestFixedMap.set(groupKey, entry);
+      }
+    }
+  });
+
+  return Array.from(latestFixedMap.values());
+};
+
 const updateSummary = () => {
   let entries = state.expenses;
-  if (state.selectedMonth !== "all") {
-    entries = entries.filter((entry) => getMonthKey(parseDate(entry.date)) === state.selectedMonth);
+  const targetMonthKey = state.selectedMonth;
+
+  if (targetMonthKey !== "all") {
+    entries = entries.filter((entry) => getMonthKey(parseDate(entry.date)) === targetMonthKey);
   }
 
   const income = entries.filter((entry) => entry.type === "income").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
-  const expense = entries.filter((entry) => entry.type === "expense").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+  let expense = entries.filter((entry) => entry.type === "expense").reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
+  // If a specific month is selected, automatically add any carried-forward fixed expenses that haven't been recorded in this month yet
+  if (targetMonthKey !== "all") {
+    const monthlyFixedEntries = getMonthlyFixedEntries(targetMonthKey);
+    monthlyFixedEntries.forEach((fixedEntry) => {
+      const fixedMonthKey = getMonthKey(parseDate(fixedEntry.date));
+      if (fixedMonthKey < targetMonthKey) {
+        expense += Number(fixedEntry.amount || 0);
+      }
+    });
+  }
 
   document.getElementById("summary-income").textContent = formatCurrency(income);
   document.getElementById("summary-expense").textContent = formatCurrency(expense);
@@ -335,11 +377,7 @@ const updateFinanceOverview = () => {
   }
 
   const targetMonthKey = state.selectedMonth === "all" ? thisMonthKey : state.selectedMonth;
-
-  const monthlyFixedEntries = state.expenses.filter((entry) => {
-    const date = parseDate(entry.date);
-    return entry.type === "expense" && getMonthKey(date) === targetMonthKey && entry.fixed === true;
-  });
+  const monthlyFixedEntries = getMonthlyFixedEntries(targetMonthKey);
 
   const monthlyFixedTotal = monthlyFixedEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
   const fixedTotalEl = document.getElementById("fixed-total");
@@ -347,25 +385,24 @@ const updateFinanceOverview = () => {
     fixedTotalEl.textContent = formatCurrency(monthlyFixedTotal);
   }
 
-  const fixedSummary = new Map();
-  monthlyFixedEntries.forEach((entry) => {
-    const label = CATEGORY_LABELS[entry.category] || entry.category;
-    fixedSummary.set(label, (fixedSummary.get(label) || 0) + Number(entry.amount || 0));
-  });
-
   const fixedExpenseListEl = document.getElementById("fixed-expense-list");
   if (fixedExpenseListEl) {
-    const fixedMarkup = fixedSummary.size
-      ? Array.from(fixedSummary.entries())
-          .map(([label, total]) => `
-            <div class="fixed-expense-item">
-              <div>
-                <strong>${escapeHtml(label)}</strong>
-                <span>每月固定項目</span>
+    const fixedMarkup = monthlyFixedEntries.length
+      ? monthlyFixedEntries
+          .map((entry) => {
+            const categoryLabel = CATEGORY_LABELS[entry.category] || entry.category;
+            const label = entry.note ? `${categoryLabel} (${entry.note})` : categoryLabel;
+            const dateStr = formatDate(entry.date);
+            return `
+              <div class="fixed-expense-item">
+                <div>
+                  <strong>${escapeHtml(label)}</strong>
+                  <span>新增於 ${escapeHtml(dateStr)}</span>
+                </div>
+                <strong>${formatCurrency(entry.amount)}</strong>
               </div>
-              <strong>${formatCurrency(total)}</strong>
-            </div>
-          `)
+            `;
+          })
           .join("")
       : '<p class="empty-message">目前還沒有固定支出。</p>';
     fixedExpenseListEl.innerHTML = fixedMarkup;
